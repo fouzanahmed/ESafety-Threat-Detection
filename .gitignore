@@ -14,6 +14,7 @@ npm-debug.log*
 # Build files
 client/build/
 dist/
+.next/
 
 # Temporary files
 uploads/
