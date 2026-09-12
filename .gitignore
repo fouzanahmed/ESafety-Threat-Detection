@@ -20,6 +20,7 @@ dist/
 uploads/
 temp/
 *.tmp
+[0-9]*-player-script.js
 
 # IDE
 .vscode/
