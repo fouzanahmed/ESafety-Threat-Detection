@@ -33,12 +33,12 @@ router.post('/images', upload.array('images', 10), analysisController.analyzeIma
 router.post('/url', analysisController.analyzeUrl);
 
 // Batch analysis
-router.post('/batch', analysisController.analyzeBatch);
+router.post('/batch', analysisController.analyzeBatch.bind(analysisController));
 
 // Specialized analysis endpoints
 router.post('/deepfake', upload.single('image'), analysisController.analyzeDeepfake);
 router.post('/grooming', analysisController.analyzeGrooming);
 router.post('/cyberbullying', analysisController.analyzeCyberbullying);
-router.post('/conversation', analysisController.analyzeConversation);
+router.post('/conversation', analysisController.analyzeConversation.bind(analysisController));
 
 module.exports = router;
