@@ -1,201 +1,122 @@
-# ESafety Threat Detection
+# eSafety Threat Detection
 
-🛡️ AI-powered content safety analysis platform for instant threat detection
+A full-stack content safety platform built during the Grand Challenge hackathon
+(Nov 2024 to Jan 2025). You give it text, images, a link or a short video, and it
+returns a 0 to 100 threat score, a category, the reasoning behind it, and
+support resources. GPT-4 and Gemini do the scoring. FFmpeg pulls frames out of
+video so it reads more than captions.
 
-**Hackathon problem statement to stop incels and protect children online**
+The brief was protecting children and teenagers online: grooming,
+cyberbullying, deepfakes, and extremist or incel content.
 
-## Overview
+---
 
-ESafety Threat Detection is a web application that provides instant safety analysis for any type of online content. Users can upload screenshots, paste links, or share text to receive immediate threat assessments with actionable insights.
+## What it does
 
-## Features
+- **Two LLM providers.** OpenAI GPT-4 and Google Gemini score content on a 0 to
+  100 scale across 8 threat types: grooming, cyberbullying, deepfakes and
+  manipulated media, incel / MGTOW / PUA ideology, extremism, coordinated attacks,
+  persistent harassment, and general threats.
+- **Video, not only text.** For Instagram Reels, FFmpeg extracts the first,
+  middle and last frames and analyzes them alongside the caption and metadata.
+  YouTube gets transcript extraction and TikTok gets metadata analysis.
+- **90+ detection patterns.** Grooming patterns (50+) track how a conversation
+  progresses through stages, cyberbullying patterns (40+) fingerprint attack
+  types and coordinated pile-ons, and deepfake checks use 7 visual and 6
+  contextual indicators.
+- **Batch and conversation analysis.** Up to 10 images in one request, and full
+  conversation threads analyzed as a timeline.
+- **Structured output.** Each analysis returns JSON with the score, category,
+  explanation and recommended resources.
+- **On demand only.** Nothing is monitored in the background, and no account is
+  needed.
 
-### 🎯 Core Analysis
-- **Multi-format Support**: Analyze images, videos, text, and links
-- **Real-time Analysis**: Instant threat scoring (0-100)
-- **Category Classification**: Incel/MGTOW/PUA/grooming/extremist/safe
-- **Detailed Explanations**: Clear reasoning for each assessment
-- **Resource Recommendations**: Helpful guidance and next steps
-- **Privacy-First**: No monitoring or surveillance - on-demand only
-- **No Account Required**: Instant access without registration
+---
 
-### 🎥 Enhanced Video Analysis
-- **YouTube**: Full transcript extraction + metadata
-- **Instagram Reels**: **INDUSTRY-FIRST** Frame extraction (first, middle, last) + caption analysis
-- **TikTok**: Complete metadata + description analysis
-- **Multi-platform**: Works across all major social media
+## Architecture
 
-### 🔍 Specialized Detection (Advanced)
-- **Deepfake Detection**: 7 visual + 6 contextual indicators
-- **Grooming Detection**: 50+ patterns across 8 categories with conversation progression tracking
-- **Cyberbullying Detection**: 40+ patterns across 8 types with coordinated attack identification
-- **Multi-Image Analysis**: Batch process up to 10 images simultaneously
-- **Conversation Threading**: Full timeline analysis with phase detection
-
-### 🛡️ Threat Categories Detected
-- Online Grooming (8 sub-categories)
-- Cyberbullying (8 types)
-- Deepfakes & Manipulated Media
-- Incel/MGTOW/PUA Ideology
-- Extremist Content
-- General Threats
-- Coordinated Attacks
-- Persistent Harassment
-
-## Technology Stack
-
-### Backend
-- Node.js + Express
-- MongoDB for analytics (optional)
-- AI Integration (OpenAI GPT-4, Google Gemini)
-- Natural Language Processing
-- FFmpeg for video frame extraction
-
-### Frontend
-- React 18
-- Material-UI
-- Axios for API calls
-- Progressive Web App support
-
-## Installation
-
-### Prerequisites
-- Node.js 18+ and npm
-- Python 3.7+ (for video analysis features)
-- FFmpeg (for Instagram reel frame extraction)
-- MongoDB (optional, for analytics)
-- AI API key (OpenAI or Google AI)
-
-### Quick Setup
-
-1. Clone the repository:
-```bash
-git clone https://github.com/fouzanahmed/ESafety-Threat-Detection.git
-cd ESafety-Threat-Detection
+```
+React 18 client (Material-UI) ──► Express API ──► aiService ──► GPT-4 / Gemini
+                                     │
+                                     ├── detection services (grooming, cyberbullying, deepfake)
+                                     ├── imageService (sharp), urlService
+                                     ├── videoDownloadService ─► videoFrameExtractionService (FFmpeg)
+                                     └── MongoDB (optional, analytics + feedback)
 ```
 
-2. Install dependencies:
+| Path | What's there |
+|---|---|
+| `server/` | Express API: routes, controllers, detection services, validation, logging |
+| `client/` | React 18 + Material-UI web app |
+| `esafety-frontend/` | Alternative Next.js + TypeScript front end from the hackathon |
+| `youtube-safety-extension/` | Chrome extension prototype for checking YouTube videos |
+
+---
+
+## API
+
+Mounted under `/api`, rate-limited, with `helmet` and `express-validator` on
+the free-text and URL inputs. `GET /health` reports service status.
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/api/analyze/text` | Analyze a block of text |
+| POST | `/api/analyze/image` | Analyze one uploaded image |
+| POST | `/api/analyze/images` | Analyze up to 10 images in one request |
+| POST | `/api/analyze/url` | Analyze a link (Instagram, YouTube, TikTok) |
+| POST | `/api/analyze/batch` | Analyze up to 10 text or URL items together |
+| POST | `/api/analyze/deepfake` | Deepfake indicators on an image |
+| POST | `/api/analyze/grooming` | Grooming pattern detection |
+| POST | `/api/analyze/cyberbullying` | Cyberbullying pattern detection |
+| POST | `/api/analyze/conversation` | Timeline analysis of a conversation thread |
+| GET | `/api/resources` | All support resources |
+| GET | `/api/resources/:category` | Resources for one threat category |
+| POST | `/api/resources/feedback` | Submit feedback on an analysis |
+
+---
+
+## Running it
+
+You need Node.js 18+ and an OpenAI or Google AI key. FFmpeg is only needed for
+video frame extraction, and MongoDB is optional.
+
 ```bash
-npm run install-all
+npm run install-all          # server + client dependencies
+cp .env.example .env         # add your API key(s)
+npm run dev                  # API on :5000, client on :3000
 ```
 
-3. Configure environment variables:
+Optional video tooling: `install-video-tools.bat` on Windows or
+`./install-video-tools.sh` on macOS/Linux. Windows notes are in
+[WINDOWS_SETUP.md](WINDOWS_SETUP.md).
+
+With Docker, `docker-compose up` starts the full stack.
+
+---
+
+## Tests and CI
+
 ```bash
-cp .env.example .env
-# Edit .env with your API keys
+npm test
 ```
 
-4. **(Optional)** Install video analysis tools:
-```bash
-# Windows
-install-video-tools.bat
+19 Jest + Supertest integration tests cover the analysis endpoints. Writing
+them turned up a real bug: `/batch` and `/conversation` lost their `this`
+binding when passed to the router, so both routes failed at runtime. GitHub
+Actions runs the server tests on Node 18 and 20 and builds the client on every
+push and pull request.
 
-# macOS/Linux
-chmod +x install-video-tools.sh
-./install-video-tools.sh
-```
+---
 
-5. Start the development server:
-```bash
-npm run dev
-```
+## Status
 
-The backend runs on `http://localhost:5000` and frontend on `http://localhost:3000`
-
-### Platform-Specific Guides
-- **Windows Users**: See [WINDOWS_SETUP.md](WINDOWS_SETUP.md)
-- **Video Features**: See [QUICK_START_VIDEO.md](QUICK_START_VIDEO.md)
-- **Complete Setup**: See [SETUP.md](SETUP.md)
-
-## API Endpoints
-
-### POST /api/analyze/text
-Analyze text content for threats
-
-### POST /api/analyze/image
-Analyze uploaded images
-
-### POST /api/analyze/images
-Batch analyze up to 10 images
-
-### POST /api/analyze/url
-Analyze content from URLs (Instagram, YouTube, TikTok)
-
-### POST /api/analyze/deepfake
-Specialized deepfake detection
-
-### POST /api/analyze/grooming
-Specialized grooming pattern detection
-
-### POST /api/analyze/cyberbullying
-Specialized cyberbullying detection
-
-### GET /api/resources/:category
-Get helpful resources for specific threat categories
-
-## Grand Challenge Scoring
-
-### Innovation (5/5)
-- **Industry-first Instagram reel frame extraction** (no competitor has this)
-- Privacy-first on-demand analysis (no surveillance)
-- Multi-AI provider support for accuracy
-- 90+ specialized detection patterns
-
-### Usefulness (10/10)
-- Protects children from online predators and bullying
-- Simple, accessible interface for parents and educators
-- Immediate actionable results
-- Real-world applicability
-
-### Viability (10/10)
-- Scalable serverless architecture
-- Cost-effective AI API usage
-- Easy deployment and adoption
-- Production-ready code
-
-### Technical (10/10)
-- Multi-modal AI analysis (text, image, video)
-- Advanced NLP and pattern recognition
-- FFmpeg integration for frame extraction
-- Extensible architecture for future enhancements
-- 5,000+ lines of production code
-
-### Business (10/10)
-- Multiple revenue streams: B2C ($9.99/mo) + B2B ($199-499/mo)
-- Competitive pricing (below Bark at $14/mo)
-- Clear path to $1M+ ARR
-- Freemium model for user acquisition
-
-### Sustainability (5/5)
-- Efficient API usage to minimize compute
-- Multiple revenue streams
-- Optional self-hosting for privacy
-- Long-term maintenance plan
-
-## Deployment
-
-### Docker
-```bash
-docker-compose up
-```
-
-### Cloud Platforms
-- Vercel/Netlify (Frontend)
-- Heroku/Railway/Render (Backend)
-- MongoDB Atlas (Database)
-
-## Contributing
-
-Contributions are welcome! Please read our contributing guidelines.
+This is hackathon code, kept as it was built, with tests, request validation
+and CI added since. The extra Markdown files in the root are notes written
+during the hackathon. Detection quality depends on the LLM providers and hasn't
+been measured against a labeled dataset here. A separate project, a fine-tuned
+multi-label classifier, did that work for the Kaggle stage of the same
+challenge.
 
 ## License
 
-MIT License - see LICENSE file for details
-
-## Support
-
-For questions or support, please open an issue
-
-## Acknowledgments
-
-Built for the Grand Challenge hackathon to protect children online
+MIT
