@@ -73,6 +73,11 @@ the free-text and URL inputs. `GET /health` reports service status.
 | GET | `/api/resources/:category` | Resources for one threat category |
 | POST | `/api/resources/feedback` | Submit feedback on an analysis |
 
+Request and response details for the specialized endpoints are in
+[docs/detection-services.md](docs/detection-services.md). The Reel video
+pipeline is described in
+[docs/video-frame-extraction.md](docs/video-frame-extraction.md).
+
 ---
 
 ## Running it
@@ -111,9 +116,10 @@ push and pull request.
 ## Status
 
 This is hackathon code, kept as it was built, with tests, request validation
-and CI added since. The extra Markdown files in the root are notes written
-during the hackathon. Detection quality depends on the LLM providers and hasn't
-been measured against a labeled dataset here. A separate project, a fine-tuned
+and CI added since. Technical write-ups are in [`docs/`](docs/). The original
+pitch materials are archived in [`docs/hackathon/`](docs/hackathon/), and the
+other Markdown files in the root are setup notes from the hackathon. Detection
+quality depends on the LLM providers and hasn't been measured against a labeled dataset here. A separate project, a fine-tuned
 multi-label classifier, did that work for the Kaggle stage of the same
 challenge.
 
