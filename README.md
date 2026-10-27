@@ -103,13 +103,14 @@ With Docker, `docker-compose up` starts the full stack.
 
 ```bash
 npm test
+npm run lint                 # ESLint on server/
 ```
 
 19 Jest + Supertest integration tests cover the analysis endpoints. Writing
 them turned up a real bug: `/batch` and `/conversation` lost their `this`
 binding when passed to the router, so both routes failed at runtime. GitHub
-Actions runs the server tests on Node 18 and 20 and builds the client on every
-push and pull request.
+Actions lints the server code, runs the server tests on Node 18 and 20, and
+builds the client on every push and pull request.
 
 ---
 

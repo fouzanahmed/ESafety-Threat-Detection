@@ -25,6 +25,9 @@ jobs:
       - name: Install server dependencies
         run: npm ci
 
+      - name: Lint server code
+        run: npm run lint
+
       - name: Run server test suite
         run: npm test -- --watchAll=false
 
