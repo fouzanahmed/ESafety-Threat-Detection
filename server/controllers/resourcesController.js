@@ -6,11 +6,13 @@ class ResourcesController {
     try {
       const { category } = req.params;
 
-      const categoryResources = resources[category];
-
-      if (!categoryResources) {
+      // Own-property check so inherited keys like "constructor" or
+      // "toString" are treated as unknown categories instead of matching.
+      if (!Object.prototype.hasOwnProperty.call(resources, category)) {
         return res.status(404).json({ error: 'Category not found' });
       }
+
+      const categoryResources = resources[category];
 
       res.json({
         category,
