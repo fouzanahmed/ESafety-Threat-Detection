@@ -8,6 +8,7 @@ const logger = require('./utils/logger');
 const analysisRoutes = require('./routes/analysis');
 const resourcesRoutes = require('./routes/resources');
 const errorHandler = require('./middleware/errorHandler');
+const requestLogger = require('./middleware/requestLogger');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -34,11 +35,8 @@ app.use('/api/', limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Logging middleware
-app.use((req, res, next) => {
-  logger.info(`${req.method} ${req.path}`);
-  next();
-});
+// Request logging: X-Request-Id correlation header plus status/duration on finish
+app.use(requestLogger);
 
 // Health check
 app.get('/health', (req, res) => {
