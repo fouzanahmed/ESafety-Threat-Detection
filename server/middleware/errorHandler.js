@@ -5,7 +5,8 @@ function errorHandler(err, req, res, next) {
     message: err.message,
     stack: err.stack,
     path: req.path,
-    method: req.method
+    method: req.method,
+    requestId: req.id
   });
 
   // Multer errors
