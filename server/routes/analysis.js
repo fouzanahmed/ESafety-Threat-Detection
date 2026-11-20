@@ -16,7 +16,11 @@ const upload = multer({
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.'));
+      // A disallowed type is a client error; statusCode lets errorHandler's
+      // default branch respond with 400 instead of 500.
+      const err = new Error('Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.');
+      err.statusCode = 400;
+      cb(err);
     }
   }
 });
