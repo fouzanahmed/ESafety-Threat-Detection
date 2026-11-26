@@ -77,10 +77,47 @@ describe('POST /api/resources/feedback', () => {
     });
   });
 
-  test('acknowledges an empty feedback body', async () => {
-    const res = await request(app).post('/api/resources/feedback').send({});
+  test('accepts a payload with only analysisId', async () => {
+    const res = await request(app)
+      .post('/api/resources/feedback')
+      .send({ analysisId: 'abc123' });
 
     expect(res.status).toBe(200);
     expect(res.body.received).toBe(true);
+  });
+
+  test('accepts helpful: false and feedback at the 1000-character cap', async () => {
+    const res = await request(app)
+      .post('/api/resources/feedback')
+      .send({ analysisId: 'abc123', helpful: false, feedback: 'a'.repeat(1000) });
+
+    expect(res.status).toBe(200);
+    expect(res.body.received).toBe(true);
+  });
+
+  test('accepts null for the optional helpful and feedback fields', async () => {
+    const res = await request(app)
+      .post('/api/resources/feedback')
+      .send({ analysisId: 'abc123', helpful: null, feedback: null });
+
+    expect(res.status).toBe(200);
+  });
+
+  test.each([
+    ['an empty body', {}, 'analysisId is required'],
+    ['an empty analysisId', { analysisId: '' }, 'analysisId is required'],
+    ['a whitespace-only analysisId', { analysisId: '   ' }, 'analysisId is required'],
+    ['a numeric analysisId', { analysisId: 123 }, 'analysisId must be a string'],
+    ['an object analysisId', { analysisId: { $ne: null } }, 'analysisId must be a string'],
+    ['an over-long analysisId', { analysisId: 'x'.repeat(101) }, 'analysisId must be at most 100 characters'],
+    ['helpful as the string "true"', { analysisId: 'abc123', helpful: 'true' }, 'helpful must be a boolean'],
+    ['helpful as a number', { analysisId: 'abc123', helpful: 1 }, 'helpful must be a boolean'],
+    ['a non-string feedback', { analysisId: 'abc123', feedback: ['a'] }, 'feedback must be a string'],
+    ['feedback over 1000 characters', { analysisId: 'abc123', feedback: 'a'.repeat(1001) }, 'feedback must be at most 1000 characters']
+  ])('rejects %s with 400', async (_label, payload, message) => {
+    const res = await request(app).post('/api/resources/feedback').send(payload);
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: message });
   });
 });
